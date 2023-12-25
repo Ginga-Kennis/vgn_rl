@@ -1,0 +1,34 @@
+<?xml version="1.0" ?>
+<launch>
+  <arg name="launch_rviz" default="true" />
+
+  <!-- Launch Panda controller -->
+  <include file="$(find ur_robot_driver)/launch/ur5e_bringup.launch">
+    <arg name="robot_ip" value="192.168.56.101" />
+  </include>
+
+  <!-- Launch MoveIt -->
+  <include file="$(find ur5e_moveit_config)/launch/moveit_planning_execution.launch" />
+
+  <!-- Launch camera driver -->
+  <include file="$(find realsense2_camera)/launch/rs_camera.launch">
+    <arg name="enable_pointcloud" value="true" />
+    <arg name="camera" value="wrist_camera" />
+    <arg name="publish_tf" value="true" />
+  </include>
+
+  <!-- Broadcast task transform -->
+  <!-- To Do -->
+  <node pkg="tf2_ros" type="static_transform_publisher" name="task_frame_broadcaster" args="0.25 -0.15 0.0 0.0 0.0 0.0 1.0 panda_link0 task" />
+
+  <!-- Load configuration -->
+  <rosparam command="load" file="$(find vgn)/cfg/hw/ur5e_grasp.yaml" subst_value="true" />
+
+  <!-- Launch Nodes -->
+  <node pkg="vgn" type="tsdf_server.py" name="tsdf_server" />
+  <node pkg="vgn" type="vgn_server.py" name="vgn_server" />
+
+  <!-- Launch rviz -->
+  <node if="$(arg launch_rviz)" pkg="rviz" type="rviz" name="rviz" args="-d $(find vgn)/cfg/hw/panda_grasp.rviz" />
+
+</launch>
