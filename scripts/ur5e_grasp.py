@@ -36,16 +36,17 @@ class Ur5eGraspController(object):
 
     def init_robot_connection(self):
         # self.gripper = PandaGripperClient()
-        self.moveit = MoveItClient("panda_arm")
+        self.moveit = MoveItClient("ur5e")
         self.moveit.move_group.set_end_effector_link(self.ee_frame)
 
         # Add a box to the planning scene to avoid collisions with the table.
         # To Do (change table position)
         msg = geometry_msgs.msg.PoseStamped()
-        msg.header.frame_id = self.base_frame
-        msg.pose.position.x = 0.4
-        msg.pose.position.z = 0.08
-        self.moveit.scene.add_box("table", msg, size=(0.6, 0.6, 0.02))
+        msg.header.frame_id = self.task_frame
+        msg.pose.position.x = 0.10
+        msg.pose.position.y = 0.10
+        msg.pose.position.z = -0.02
+        self.moveit.scene.add_box("table", msg, size=(1.0, 0.6, 0.02))
 
     def init_services(self):
         self.reset_map = rospy.ServiceProxy("reset_map", Empty)
@@ -61,39 +62,39 @@ class Ur5eGraspController(object):
         self.vis.roi(self.task_frame, 0.3)
 
         rospy.loginfo("Reconstructing scene")
-        self.scan_scene()
-        self.get_scene_cloud()       # Pointcloud
-        res = self.get_map_cloud()   # TSDF
+        # self.scan_scene()
+        # self.get_scene_cloud()       # Pointcloud
+        # res = self.get_map_cloud()   # TSDF
 
-        rospy.loginfo("Planning grasps")
-        req = PredictGraspsRequest(res.voxel_size, res.map_cloud)
-        res = self.predict_grasps(req)
+        # rospy.loginfo("Planning grasps")
+        # req = PredictGraspsRequest(res.voxel_size, res.map_cloud)
+        # res = self.predict_grasps(req)
 
-        if len(self.grasps) == 0:
-            rospy.loginfo("No grasps detected")
-            return
+        # if len(self.grasps) == 0:
+        #     rospy.loginfo("No grasps detected")
+        #     return
         
-        # Deserialize result
-        grasps = []
-        for msg in res.grasps:
-            grasp, _ = from_grasp_config_msg(msg)
-            grasps.append(grasp)
+        # # Deserialize result
+        # grasps = []
+        # for msg in res.grasps:
+        #     grasp, _ = from_grasp_config_msg(msg)
+        #     grasps.append(grasp)
 
-        # Select the highest grasp
-        scores = [grasp.pose.translation[2] for grasp in grasps]
-        grasp = grasps[np.argmax(scores)]
+        # # Select the highest grasp
+        # scores = [grasp.pose.translation[2] for grasp in grasps]
+        # grasp = grasps[np.argmax(scores)]
 
-        # Execute grasp
-        rospy.loginfo("Executing grasp")
-        self.moveit.goto("ready")
-        success = self.execute_grasp(grasp)
+        # # Execute grasp
+        # rospy.loginfo("Executing grasp")
+        # self.moveit.goto("ready")
+        # success = self.execute_grasp(grasp)
 
-        if success:
-            rospy.loginfo("Dropping object")
-            self.moveit.goto(self.place_joints)
-            # self.gripper.move(0.08)
+        # if success:
+        #     rospy.loginfo("Dropping object")
+        #     self.moveit.goto(self.place_joints)
+        #     # self.gripper.move(0.08)
         
-        self.moveit.goto("ready")
+        # self.moveit.goto("ready")
 
     def execute_grasp(self, grasp):
         # Transform to base frame
