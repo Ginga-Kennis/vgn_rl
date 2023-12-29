@@ -87,21 +87,19 @@ class Ur5eGraspController(object):
         # Execute grasp
         rospy.loginfo("Executing grasp")
         self.moveit.check_and_goto("ready")
-        success = self.execute_grasp(grasp)
+        self.execute_grasp(grasp)
 
-        # if success:
-        #     rospy.loginfo("Dropping object")
-        #     self.moveit.goto(self.place_joints)
-        #     # self.gripper.move(0.08)
         
-        # self.moveit.goto("ready")
+        rospy.loginfo("Dropping object")
+        self.moveit.check_and_goto(self.place_joints[0])
+        # self.gripper.move(0.08)
+        
 
     def execute_grasp(self, grasp):
         # Transform to base frame
         grasp.pose = self.T_base_task * grasp.pose
 
         # Ensure that the camera is pointing forward.
-        # To Do (figure out)
         rot = grasp.pose.rotation
         axis = rot.as_matrix()[:, 0]
         if axis[0] < 0:
@@ -109,8 +107,8 @@ class Ur5eGraspController(object):
 
         T_base_grasp = grasp.pose
 
-        T_grasp_pregrasp = Transform(Rotation.identity(), [0.0, 0.0, -0.05])
-        T_grasp_retreat = Transform(Rotation.identity(), [0.0, 0.0, -0.05])
+        T_grasp_pregrasp = Transform(Rotation.identity(), [0.0, 0.0, -0.10])
+        T_grasp_retreat = Transform(Rotation.identity(), [0.0, 0.0, -0.20])
         T_base_pregrasp = T_base_grasp * T_grasp_pregrasp
         T_base_retreat = T_base_grasp * T_grasp_retreat
 
@@ -119,16 +117,8 @@ class Ur5eGraspController(object):
         # # self.gripper.grasp(width=0.0, force=20.0)
         self.moveit.gotoL(T_base_retreat * self.grasp_ee_offset)
 
-        T_retreat_lift_base = Transform(Rotation.identity(), [0.0, 0.0, 0.1])
-        T_base_lift = T_retreat_lift_base * T_base_retreat
-        self.moveit.check_and_goto(T_base_lift * self.grasp_ee_offset)
-
-        return
-        
-
 
     def scan_scene(self):
-        # readyを定義する
         self.moveit.check_and_goto("ready")
         self.reset_map()
         self.toggle_integration(True)
@@ -140,4 +130,5 @@ class Ur5eGraspController(object):
 if __name__ == "__main__":
     rospy.init_node("ur5e_grasp")
     controller = Ur5eGraspController()
-    controller.run()
+    while True:
+        controller.run()
