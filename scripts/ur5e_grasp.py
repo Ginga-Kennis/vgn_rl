@@ -62,32 +62,32 @@ class Ur5eGraspController(object):
         self.vis.roi(self.task_frame, 0.3)
 
         rospy.loginfo("Reconstructing scene")
-        # self.scan_scene()
-        # self.get_scene_cloud()       # Pointcloud
-        # res = self.get_map_cloud()   # TSDF
+        self.scan_scene()
+        self.get_scene_cloud()       # Pointcloud
+        res = self.get_map_cloud()   # TSDF
 
-        # rospy.loginfo("Planning grasps")
-        # req = PredictGraspsRequest(res.voxel_size, res.map_cloud)
-        # res = self.predict_grasps(req)
+        rospy.loginfo("Planning grasps")
+        req = PredictGraspsRequest(res.voxel_size, res.map_cloud)
+        res = self.predict_grasps(req)
 
-        # if len(self.grasps) == 0:
-        #     rospy.loginfo("No grasps detected")
-        #     return
+        if len(res.grasps) == 0:
+            rospy.loginfo("No grasps detected")
+            return
         
-        # # Deserialize result
-        # grasps = []
-        # for msg in res.grasps:
-        #     grasp, _ = from_grasp_config_msg(msg)
-        #     grasps.append(grasp)
+        # Deserialize result
+        grasps = []
+        for msg in res.grasps:
+            grasp, _ = from_grasp_config_msg(msg)
+            grasps.append(grasp)
 
-        # # Select the highest grasp
-        # scores = [grasp.pose.translation[2] for grasp in grasps]
-        # grasp = grasps[np.argmax(scores)]
+        # Select the highest grasp
+        scores = [grasp.pose.translation[2] for grasp in grasps]
+        grasp = grasps[np.argmax(scores)]
 
-        # # Execute grasp
-        # rospy.loginfo("Executing grasp")
-        # self.moveit.goto("ready")
-        # success = self.execute_grasp(grasp)
+        # Execute grasp
+        rospy.loginfo("Executing grasp")
+        self.moveit.check_and_goto("ready")
+        success = self.execute_grasp(grasp)
 
         # if success:
         #     rospy.loginfo("Dropping object")
@@ -114,14 +114,14 @@ class Ur5eGraspController(object):
         T_base_pregrasp = T_base_grasp * T_grasp_pregrasp
         T_base_retreat = T_base_grasp * T_grasp_retreat
 
-        self.moveit.goto(T_base_pregrasp * self.grasp_ee_offset, velocity_scaling=0.2)
+        self.moveit.check_and_goto(T_base_pregrasp * self.grasp_ee_offset, velocity_scaling=0.2)
         self.moveit.gotoL(T_base_grasp * self.grasp_ee_offset)  # Linear movement
-        # self.gripper.grasp(width=0.0, force=20.0)
+        # # self.gripper.grasp(width=0.0, force=20.0)
         self.moveit.gotoL(T_base_retreat * self.grasp_ee_offset)
 
         T_retreat_lift_base = Transform(Rotation.identity(), [0.0, 0.0, 0.1])
         T_base_lift = T_retreat_lift_base * T_base_retreat
-        self.moveit.goto(T_base_lift * self.grasp_ee_offset)
+        self.moveit.check_and_goto(T_base_lift * self.grasp_ee_offset)
 
         return
         
@@ -129,11 +129,11 @@ class Ur5eGraspController(object):
 
     def scan_scene(self):
         # readyを定義する
-        self.moveit.goto("ready")
+        self.moveit.check_and_goto("ready")
         self.reset_map()
         self.toggle_integration(True)
         for joint_target in self.scan_joints:
-            self.moveit.goto(joint_target)
+            self.moveit.check_and_goto(joint_target)
         self.toggle_integration(False)
 
 

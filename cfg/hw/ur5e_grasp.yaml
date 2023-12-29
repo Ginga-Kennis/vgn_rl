@@ -2,7 +2,8 @@ ur5e_grasp:
   task_frame_id: task
   base_frame_id: base_link
   ee_frame_id: gripper-tcp
-  ee_grasp_offset: [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0]
+  # difference between ee and grasp (pitch +90)
+  ee_grasp_offset: [0, 0.7071068, 0, 0.7071068, 0.0, 0.0, 0.0]
 
   scan_joints:
     - [1.5708, -0.7854, -1.5708, -1.920, 1.5708, 0.0]
