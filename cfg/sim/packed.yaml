@@ -1,6 +1,6 @@
 sim:
   urdf_root: assets/urdfs
-  gui: False
+  gui: True
   lateral_friction: 1.0
 
 object_urdfs: assets/urdfs/packed/test

@@ -1,9 +1,8 @@
 ur5e_grasp:
   task_frame_id: task
   base_frame_id: base_link
-  # To Do 
-  ee_frame_id: panda_link8
-  ee_grasp_offset: [0.0, 0.0, -0.382, 0.924, 0.0, 0.0, 0.066]
+  ee_frame_id: gripper-tcp
+  ee_grasp_offset: [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0]
 
   scan_joints:
     - [1.5708, -0.7854, -1.5708, -1.920, 1.5708, 0.0]
@@ -21,9 +20,9 @@ tsdf_server:
   depth_scaling: 0.001  # Set to 1.0 for Gazebo, 0.001 for a RealSense
   # To Do
   camera:
-    frame_id: wrist_camera_depth_optical_frame
-    info_topic: /wrist_camera/depth/camera_info
-    depth_topic: /wrist_camera/depth/image_rect_raw
+    frame_id: camera_depth_optical_frame
+    info_topic: /camera/depth/camera_info
+    depth_topic: /camera/depth/image_rect_raw
 
 vgn_server:
   frame_id: task

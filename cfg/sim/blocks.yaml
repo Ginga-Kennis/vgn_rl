@@ -1,6 +1,6 @@
 sim:
   lateral_friction: 1.0
-  gui: False
+  gui: True
 
 object_urdfs: assets/urdfs/blocks
 object_count: 5
