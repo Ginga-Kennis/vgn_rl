@@ -4,6 +4,7 @@ import numpy as np
 from std_srvs.srv import SetBool, Empty
 
 from robot_helpers.ros import tf
+from robot_helpers.ros.robotiq_gripper import RobotiqGripperClient
 from robot_helpers.ros.moveit import MoveItClient
 from robot_helpers.spatial import Rotation, Transform
 from vgn.rviz import Visualizer
@@ -35,7 +36,7 @@ class Ur5eGraspController(object):
         self.T_base_task = tf.lookup(self.base_frame, self.task_frame)
 
     def init_robot_connection(self):
-        # self.gripper = PandaGripperClient()
+        self.gripper = RobotiqGripperClient()
         self.moveit = MoveItClient("ur5e")
         self.moveit.move_group.set_end_effector_link(self.ee_frame)
 
@@ -57,7 +58,7 @@ class Ur5eGraspController(object):
 
     def run(self):
         self.vis.clear()
-        # self.gripper.move()
+        self.gripper.open()
 
         self.vis.roi(self.task_frame, 0.3)
 
@@ -92,7 +93,7 @@ class Ur5eGraspController(object):
         
         rospy.loginfo("Dropping object")
         self.moveit.check_and_goto(self.place_joints[0])
-        # self.gripper.move(0.08)
+        self.gripper.open()
         
 
     def execute_grasp(self, grasp):
@@ -114,7 +115,7 @@ class Ur5eGraspController(object):
 
         self.moveit.check_and_goto(T_base_pregrasp * self.grasp_ee_offset, velocity_scaling=0.2)
         self.moveit.gotoL(T_base_grasp * self.grasp_ee_offset)  # Linear movement
-        # # self.gripper.grasp(width=0.0, force=20.0)
+        self.gripper.close()
         self.moveit.gotoL(T_base_retreat * self.grasp_ee_offset)
 
 
